@@ -16,17 +16,21 @@
         var p = '';
         if (json.type === 'welcome'){
             if(myName==json.text) status.text(myName + ': ').css('color', json.color);
-            p = '<p style="background:'+json.color+'">system  @ '+ json.time+ ' : Welcome ' + json.text +'</p>';
+            p = '<p style="background:'+json.color+'">system  @ '+ json.time+ ' : Welcome ' + json.text +'</p>\n';
         }else if(json.type == 'disconnect'){
-            p = '<p style="background:'+json.color+'">system  @ '+ json.time+ ' : Bye ' + json.text +'</p>';
+            p = '<p style="background:'+json.color+'">system  @ '+ json.time+ ' : Bye ' + json.text +'</p>\n';
         }
-        content.prepend(p); 
+        // content.prepend(p);
+        content.val(p); 
     });
 
     //监听message事件，打印消息信息
     socket.on('message',function(json){
-        var p = '<p><span style="color:'+json.color+';">' + json.author+'</span> @ '+ json.time+ ' : '+json.text+'</p>';
-        content.prepend(p);
+        var text = content.val();
+        var p = json.author+' @'+ json.time+ ' : '+json.text+'\n';
+        // content.prepend(p);
+        content.val(text + p);
+        content.scrollTop = content.scrollHeight;
     });
 
     //通过“回车”提交聊天信息

@@ -2,18 +2,20 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Socket.io - Simple chat</title>
+    <title>Chat room</title>
     <link rel="stylesheet" type="text/css" href="css/main.css">
     <script src="javascripts/jquery.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="javascripts/chat.js"></script>
 </head>
 <body>
-    <h1>Socket.io - Simple chat room</h1>
+  <div class="chat-room">
+    <h1>Welcome coming chat room</h1>
+    <textarea id="content" disabled="true"></textarea>
     <div>
         <span id="status">Connecting...</span>
         <input type="text" id="input"/>
     </div>
-    <div id="content"></div>
+  </div>
 </body>
 </html>
