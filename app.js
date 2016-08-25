@@ -102,7 +102,7 @@ var getTime=function(){
 }
 
 var getColor=function(){
-  var colors = ['aliceblue','antiquewhite','aqua','aquamarine','pink','red','green',
-                'orange','blue','blueviolet','brown','burlywood','cadetblue'];
+  var colors = ['#1164E8','#620CE8','#FF1F3E','#FF4D21','#B01AE8','#20FF64','#FFFE2F',
+                '#FF9A21','#FF6627','#FF3485','#FFBB5A','#15E84D','#FF270E'];
   return colors[Math.round(Math.random() * 10000 % colors.length)];
 }
