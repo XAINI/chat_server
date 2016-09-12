@@ -1,11 +1,11 @@
- $(function () {
+$(function () {
     var content = $('#content');
     var status = $('#status');
     var input = $('#input');
     var myName = false;
 
     //建立websocket连接
-    socket = io.connect('http://192.168.56.3:3000/');
+    socket = io.connect('http://192.168.56.3:8080/');
     //收到server的连接确认
     socket.on('open',function(){
         status.text('Choose name:');
