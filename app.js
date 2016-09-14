@@ -9,10 +9,44 @@ var express = require('express')
 io.set('log level', 1); 
 
 var userNameAry = [];
+var users = {}
 
 //WebSocket连接监听
 io.on('connection', function (socket) {
-  socket.emit('open');//通知客户端已连接
+  // 首次连接时将用户名保存到 userNameAry 数组中
+  socket.emit('open');
+  socket.on('open', function(name){
+    if (userNameAry.length == 0) {
+      userNameAry.push(name);
+    }else{
+      var tag = false;
+      for (var i = 0; i < userNameAry.length; i++) {
+        if (userNameAry[i] == name) {
+          return true;
+        }
+      }
+      if (tag == false) {
+        userNameAry.push(name);
+      }
+    }
+  });
+
+  // 单聊
+  socket.on('private message', function(from, to, msg){
+    if (to in users) {
+      users[to].emit('to' + to, {mess: msg});
+    }
+  });
+
+  socket.on('new user', function(data){
+    if(data in users){
+
+    }else{
+      var nickname = data;
+      users[nickname] = socket;
+      console.log(users);
+    }
+  });
 
   // 构造客户端对象
   var client = {
@@ -20,11 +54,15 @@ io.on('connection', function (socket) {
     name:false,
     color:getColor()
   }
+
   // 对message事件的监听
   socket.on('message', function(msg, userName){
     var obj = {time:getTime(),color:client.color};
 
     client.name = userName;
+    if(!client.name){
+
+    }
     obj['text'] = msg;
     obj['author'] = client.name; 
     obj['type'] = 'message'; 
@@ -35,39 +73,8 @@ io.on('connection', function (socket) {
     // 广播向其他用户发消息
     socket.broadcast.emit('message', obj); 
 
-    
-    userNameAry.push(client.name);
     socket.emit('search', userNameAry);
     socket.broadcast.emit('search', userNameAry);
-
-    // 判断是不是第一次连接，以第一条消息作为用户名
-    // if(!client.name){
-    //   client.name = userName;
-    //   obj['text'] = client.name;
-    //   obj['author'] = 'System';
-    //   obj['type'] = 'welcome';
-
-    //   //返回欢迎语
-    //   socket.emit('system', obj);
-    //   //广播新用户已登陆
-    //   socket.broadcast.emit('system', obj);
-
-    //   userNameAry.push(client.name);
-    //   socket.emit('search', userNameAry);
-    //   socket.broadcast.emit('search', userNameAry);
-
-    // }else{
-    //   //如果不是第一次的连接，正常的聊天消息
-    //   obj['text'] = msg;
-    //   obj['author'] = client.name; 
-    //   obj['type'] = 'message'; 
-    //   console.log(client.name + ' say: ' + msg); 
-
-    //   // 返回消息（可以省略）
-    //   socket.emit('message', obj); 
-    //   // 广播向其他用户发消息
-    //   socket.broadcast.emit('message', obj); 
-    // }
   });
 
   //监听出退事件
@@ -80,9 +87,9 @@ io.on('connection', function (socket) {
       type:'disconnect'
     };
 
-    var idx = userNameAry.indexOf(client.name);
-    userNameAry.splice(idx, 1);
-    socket.broadcast.emit('search', userNameAry);
+    // var idx = userNameAry.indexOf(client.name);
+    // userNameAry.splice(idx, 1);
+    // socket.broadcast.emit('search', userNameAry);
     // 广播用户已退出
     socket.broadcast.emit('system',obj);
     console.log(client.name + 'Disconnect');
