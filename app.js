@@ -8,14 +8,16 @@ var express = require('express')
 //设置日志级别
 io.set('log level', 1); 
 
-var userNameAry = [];
-var users = {}
+var userNameAry = []; //群聊
+var users = {};
+var roomInfo = {};
 
 //WebSocket连接监听
 io.on('connection', function (socket) {
   // 首次连接时将用户名保存到 userNameAry 数组中
   socket.emit('open');
-  socket.on('open', function(name){
+  socket.on('add user', function(name){
+    console.log("传到 server 中的用户名为:" + name);
     if (userNameAry.length == 0) {
       userNameAry.push(name);
     }else{
@@ -29,23 +31,8 @@ io.on('connection', function (socket) {
         userNameAry.push(name);
       }
     }
-  });
-
-  // 单聊
-  socket.on('private message', function(from, to, msg){
-    if (to in users) {
-      users[to].emit('to' + to, {mess: msg});
-    }
-  });
-
-  socket.on('new user', function(data){
-    if(data in users){
-
-    }else{
-      var nickname = data;
-      users[nickname] = socket;
-      console.log(users);
-    }
+    socket.emit('search', userNameAry);
+    socket.broadcast.emit('search', userNameAry); 
   });
 
   // 构造客户端对象
@@ -54,6 +41,53 @@ io.on('connection', function (socket) {
     name:false,
     color:getColor()
   }
+
+  // 单聊
+  socket.on('private message', function(from, to, msg){
+    console.log('I received a private message by ', from, ' say to ',to, msg);
+    if (to in users) {
+      users[to].emit('to'+to,{from:from, mess:msg});
+      console.log("我已经发布消息了");
+    }
+  });
+
+  socket.on('new user', function(data){
+    // if(data in users){
+
+    // }else{
+    var nickname = data;
+    users[nickname] = socket;
+    // }
+  });
+
+
+  // 房间
+  // 获取请求建立 socket 连接的 url
+  var url = socket.request.headers.referer;
+  var splited = url.split('/');
+  var roomID = splited[splited.length - 1];
+  var user = '';
+
+  socket.on('join', function(userName){
+    user = userName;
+
+    // 将用户加入到房间名单中
+    if (!roomInfo[roomID]) {
+      roomInfo[roomID] = [];
+    } 
+    roomInfo[roomID].push(user);
+    socket.join(roomID);
+    io.to(roomID).emit("says", user + "加入房间", roomInfo[roomID]);
+    console.log(user + "加入了" + roomID);
+  });
+
+  socket.on('leave', function(){
+    socket.emit('disconnect');
+  });
+
+
+
+
 
   // 对message事件的监听
   socket.on('message', function(msg, userName){
@@ -73,8 +107,8 @@ io.on('connection', function (socket) {
     // 广播向其他用户发消息
     socket.broadcast.emit('message', obj); 
 
-    socket.emit('search', userNameAry);
-    socket.broadcast.emit('search', userNameAry);
+    // socket.emit('search', userNameAry);
+    // socket.broadcast.emit('search', userNameAry); 
   });
 
   //监听出退事件
@@ -86,7 +120,7 @@ io.on('connection', function (socket) {
       text:client.name,
       type:'disconnect'
     };
-
+    console.log("用户断开连接" + client.name);
     // var idx = userNameAry.indexOf(client.name);
     // userNameAry.splice(idx, 1);
     // socket.broadcast.emit('search', userNameAry);
