@@ -77,7 +77,7 @@ io.on('connection', function (socket) {
     } 
     roomInfo[roomID].push(user);
     socket.join(roomID);
-    io.to(roomID).emit("says", user + "加入房间", roomInfo[roomID]);
+    io.to(roomID).emit("sys", user + "加入房间", roomInfo[roomID]);
     console.log(user + "加入了" + roomID);
   });
 
@@ -107,8 +107,12 @@ io.on('connection', function (socket) {
     // 广播向其他用户发消息
     socket.broadcast.emit('message', obj); 
 
-    // socket.emit('search', userNameAry);
-    // socket.broadcast.emit('search', userNameAry); 
+    // 验证如果用户不在房间内则不给发送
+    if (roomInfo[roomID].indexOf(user) == -1) {  
+      return false;
+    }
+    io.to(roomID).emit('msg', user, msg);
+
   });
 
   //监听出退事件
@@ -120,7 +124,18 @@ io.on('connection', function (socket) {
       text:client.name,
       type:'disconnect'
     };
-    console.log("用户断开连接" + client.name);
+
+    // 从房间名单中移除
+    // var index = roomInfo[roomID].indexOf(user);
+    // if (index != -1) {
+    //   roomInfo[roomID].splice(index, 1);
+    // }
+
+    socket.leave(roomID);    // 退出房间
+    io.to(roomID).emit('sys', user + '退出了房间', roomInfo[roomID]);
+    console.log(user + '退出了' + roomID);
+
+
     // var idx = userNameAry.indexOf(client.name);
     // userNameAry.splice(idx, 1);
     // socket.broadcast.emit('search', userNameAry);
