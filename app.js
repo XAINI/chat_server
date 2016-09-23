@@ -77,8 +77,8 @@ io.on('connection', function (socket) {
     } 
     roomInfo[roomID].push(user);
     socket.join(roomID);
-    io.to(roomID).emit("sys", user + "加入房间", roomInfo[roomID]);
-    console.log(user + "加入了" + roomID);
+    io.to(roomID).emit("sys", user + "进入房间", roomInfo[roomID]);
+    console.log(user + "进入了" + roomID);
   });
 
   socket.on('leave', function(){
@@ -130,9 +130,8 @@ io.on('connection', function (socket) {
     // if (index != -1) {
     //   roomInfo[roomID].splice(index, 1);
     // }
-
     socket.leave(roomID);    // 退出房间
-    io.to(roomID).emit('sys', user + '退出了房间', roomInfo[roomID]);
+    io.to(roomID).emit('sys', user + '离开了房间', roomInfo[roomID]);
     console.log(user + '退出了' + roomID);
 
 
