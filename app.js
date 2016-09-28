@@ -36,11 +36,11 @@ io.on('connection', function (socket) {
   // });
 
   // 构造客户端对象
-  var client = {
-    socket:socket,
-    name:false,
-    color:getColor()
-  }
+  // var client = {
+  //   socket:socket,
+  //   name:false,
+  //   color:getColor()
+  // }
 
   // 单聊
   socket.on('private message', function(from, to, msg){
