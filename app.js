@@ -51,15 +51,13 @@ io.on('connection', function (socket) {
     }
   });
 
-  socket.on('new user', function(from, to){
-    console.log("发送者是: " + from + "接收者是: " + to);
-    if(from in users && to in users){
-      console.log("发送者和接收者都存在了!");
+  socket.on('new user', function(from){
+    console.log("发送者是: " + from);
+    if(from in users){
+      console.log("发送者已存在!");
     }else{
       var sender = from;
-      var recipient = to;
       users[sender] = socket;
-      users[recipient] = socket;
     }
   });
 
