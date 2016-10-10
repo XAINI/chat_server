@@ -1,5 +1,6 @@
 lib-cov
 node_modules
+temp.js
 *.seed
 *.log
 *.csv
