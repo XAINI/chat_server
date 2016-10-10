@@ -14,18 +14,16 @@ var roomInfo = {};
 
 //WebSocket连接监听
 io.on('connection', function (socket) {
-  console.log('hello');
   var url = socket.request.headers.referer;
   var splited = url.split('/');
   var roomID = splited[splited.length - 1];
   var user = '';
+  var sender = '';
 
   /*单聊*/
   socket.on('private message', function(from, to, msg){
-    user = from
     if (from in users){
       if (to in users ) {
-        // console.log(users[to]);
         users[to].emit('private',{from: from, mess: msg});
         console.log('message emited');
       }
@@ -33,7 +31,7 @@ io.on('connection', function (socket) {
   });
 
   socket.on('new user', function(data){
-    console.log("用户名为" + data);
+    sender = data
     if(data in users){
       console.log("用户已存在用户列表中!");
     }else{
@@ -41,8 +39,6 @@ io.on('connection', function (socket) {
       users[nickname] = socket;
     }
   });
-
-  console.log(Object.getOwnPropertyNames(users).length);
 
 
   /*讨论组
@@ -81,11 +77,9 @@ io.on('connection', function (socket) {
 
   /*监听退出事件*/
   socket.on('disconnect', function () {  
+    /* 单聊(用户退出则从数组中移除) */
+    delete users[sender];
 
-    // socket.leave(roomID);    /*退出房间*/
-    // io.to(roomID).emit('sys', user + '离开了房间', roomInfo[roomID]);
-
-    console.log(user + '退出了' + roomID);
   });
   
 });
