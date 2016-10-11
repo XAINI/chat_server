@@ -8,11 +8,11 @@ var express = require('express')
 /*设置日志级别*/
 io.set('log level', 1); 
 
-// var userNameAry = []; /*群聊*/
-var users = {};
-var roomInfo = {};
+var users = {};/* 单聊存储用户 */
+var roomInfo = {}; /* 讨论组存储讨论组信息 */
+var loginUser = [] /* 存储登录用户 */
 
-//WebSocket连接监听
+/*WebSocket连接监听*/
 io.on('connection', function (socket) {
   var url = socket.request.headers.referer;
   var splited = url.split('/');
@@ -20,12 +20,14 @@ io.on('connection', function (socket) {
   var user = '';
   var sender = '';
 
-  /*单聊*/
+/*单聊*/
   socket.on('private message', function(from, to, msg){
     if (from in users){
       if (to in users ) {
         users[to].emit('private',{from: from, mess: msg});
         console.log('message emited');
+      }else{
+        socket.emit('offline', {sender: from, msg: msg, receiver: to});
       }
     }
   });
@@ -40,8 +42,7 @@ io.on('connection', function (socket) {
     }
   });
 
-
-  /*讨论组
+/*讨论组
   获取请求建立 socket 连接的 url*/
   socket.on('join', function(userName){
     user = userName;
@@ -62,11 +63,7 @@ io.on('connection', function (socket) {
     socket.emit('disconnect');
   });
 
-
-
-
-
-  /*对message事件的监听*/
+/*对message事件的监听*/
   socket.on('message', function(msg, userName){
     if (roomInfo[roomID].indexOf(user) == -1) {  
       return false;
@@ -75,13 +72,42 @@ io.on('connection', function (socket) {
 
   });
 
-  /*监听退出事件*/
+/*监听退出事件*/
   socket.on('disconnect', function () {  
     /* 单聊(用户退出则从数组中移除) */
-    delete users[sender];
+    if (sender) {
+      delete users[sender];
+    }
 
   });
-  
+
+/* 将登录用户保存 */
+  socket.on('login', function(data){
+    console.log("登录的用户为: " + data);
+    if (loginUser.indexOf(data) != -1) {
+      console.log('您已经登录过了');
+    }else{
+      loginUser.push(data);
+      /* 如果用户成功保存到数组中提示用户登录成功 */
+      if (loginUser.indexOf(data) != -1) {
+        socket.emit('prompt', {info: '登录成功 !'});
+      }
+    }
+    console.log('已经登录的用户有: ' + loginUser);
+  });
+
+/* 将登录用户从登录用户数组中移除 */ 
+  socket.on('logout', function(data){
+    idx = loginUser.indexOf(data);
+    if (idx != -1) {
+      loginUser.splice(idx, 1);
+      if (loginUser.indexOf(data) == -1) {
+        socket.emit('prompt', {info: '用户登出 !'});
+      }
+    }
+    console.log("已经登录的用户有: " + loginUser);
+  });
+
 });
 
 app.configure('development', function(){
