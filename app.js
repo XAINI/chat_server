@@ -47,15 +47,13 @@ io.on('connection', function (socket) {
   socket.on('join', function(userName){
     user = userName;
 
-    console.log("roomID为:"+roomID);
-
     /*将用户加入到房间名单中*/
     if (!roomInfo[roomID]) {
       roomInfo[roomID] = [];
     } 
     roomInfo[roomID].push(user);
     socket.join(roomID);
-    io.to(roomID).emit("sys", user + "进入房间", roomInfo[roomID]);
+    io.to(roomID).emit("sys", user + "进入讨论组", roomInfo[roomID]);
   });
 
   socket.on('leave', function(){
