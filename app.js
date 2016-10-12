@@ -56,7 +56,6 @@ io.on('connection', function (socket) {
     roomInfo[roomID].push(user);
     socket.join(roomID);
     io.to(roomID).emit("sys", user + "进入房间", roomInfo[roomID]);
-    console.log(user + "进入了" + roomID);
   });
 
   socket.on('leave', function(){
@@ -79,6 +78,14 @@ io.on('connection', function (socket) {
       delete users[sender];
     }
 
+    /* 将用户从讨论组名单中移除 */
+    if (user) {
+      if (roomInfo[roomID].indexOf(user) != -1) {
+        roomInfo[roomID].splice(roomInfo[roomID].indexOf(user), 1);
+      }
+      socket.leave(roomID);    /*退出房间*/
+      io.to(roomID).emit('sys', user + '离开了房间', roomInfo[roomID]);
+    }
   });
 
 /* 将登录用户保存 */
