@@ -61,10 +61,19 @@ io.on('connection', function (socket) {
   });
 
 /*对message事件的监听*/
-  socket.on('message', function(msg, userName){
-    if (roomInfo[roomID].indexOf(user) == -1) {  
+  socket.on('message', function(msg, members){
+    console.log("当前所在的房间为: " + roomID);
+    /* 当前用户是否成功加入讨论组 */
+    if (roomInfo[roomID].indexOf(user) == -1) {
       return false;
     }
+    /*  如果用户没有进入讨论组将消息发布到 rails 保存(离线消息保存) */
+    for (var i = 0; i < members.length; i++) {
+      if (roomInfo[roomID].indexOf(members[i]) == -1) {
+        socket.emit('group offline', {roomID: roomID, sender: user, msg: msg, receiver: members[i]});
+      }
+    }
+
     io.to(roomID).emit('msg', user, msg);
 
   });
