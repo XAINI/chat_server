@@ -25,9 +25,12 @@ io.on('connection', function (socket) {
     if (from in users){
       if (to in users ) {
         users[to].emit('private',{from: from, mess: msg});
-        console.log('message emited');
       }else{
         socket.emit('offline', {sender: from, msg: msg, receiver: to});
+        /* 如果用户已经登录 socket 广播消息 */
+        if (loginUser.indexOf(to) != -1) {
+          socket.broadcast.emit('platform private info', {sender: from, category: '私聊'});
+        }
       }
     }
   });
@@ -61,16 +64,21 @@ io.on('connection', function (socket) {
   });
 
 /*对message事件的监听*/
-  socket.on('message', function(msg, members){
-    console.log("当前所在的房间为: " + roomID);
+  socket.on('message', function(msg, members, groupName){
     /* 当前用户是否成功加入讨论组 */
     if (roomInfo[roomID].indexOf(user) == -1) {
       return false;
     }
     /*  如果用户没有进入讨论组将消息发布到 rails 保存(离线消息保存) */
     for (var i = 0; i < members.length; i++) {
+      /* 如果用户不在房间中保存消息 */
       if (roomInfo[roomID].indexOf(members[i]) == -1) {
         socket.emit('group offline', {roomID: roomID, sender: user, msg: msg, receiver: members[i]});
+
+        /* 如果用户已经登录 socket 广播消息 */
+        if (loginUser.indexOf(members[i]) != -1) {
+          socket.broadcast.emit('platform info', {roomID: roomID, groupName: groupName, category: '讨论组'});
+        }
       }
     }
 
@@ -97,7 +105,6 @@ io.on('connection', function (socket) {
 
 /* 将登录用户保存 */
   socket.on('login', function(data){
-    console.log("登录的用户为: " + data);
     if (loginUser.indexOf(data) != -1) {
       console.log('您已经登录过了');
     }else{
@@ -107,7 +114,6 @@ io.on('connection', function (socket) {
         socket.emit('prompt', {info: '登录成功 !'});
       }
     }
-    console.log('已经登录的用户有: ' + loginUser);
   });
 
 /* 将登录用户从登录用户数组中移除 */ 
@@ -119,7 +125,6 @@ io.on('connection', function (socket) {
         socket.emit('prompt', {info: '用户登出 !'});
       }
     }
-    console.log("已经登录的用户有: " + loginUser);
   });
 
 });
